@@ -37,8 +37,7 @@ def fetch_user_vacc():
     for v in vacc:
         st.session_state.vaccination_history.append(v)
 
-def generate_response(input_text):    
-    # st.info(llm.invoke(input_text))
+def generate_response(input_text):   
     response = llm.invoke(input_text)
     print(f"Gemini's Response: {response}")
     return response.content
