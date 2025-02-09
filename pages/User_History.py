@@ -1,19 +1,27 @@
 import streamlit as st
-from pymongo import MongoClient 
 import pandas as pd
 
-client = MongoClient(st.secrets["connection_string"])
-db = client["hacknyu2025"]
-collection = db["patient"]
+if "userHistory" not in st.session_state:
+    st.session_state["userHistory"] = {}
+if 'illness_history' not in st.session_state:
+    st.session_state.illness_history = []
+if 'vaccination_history' not in st.session_state:
+    st.session_state.vaccination_history = []
+if 'username' not in st.session_state:
+       st.session_state.username = ''
 
 def main():
     st.title("User History")
-    # st.write(collection.find_one())
-    result = collection.find({"patient_id": 1},{ "_id": 0, "patient_id": 0, "user_id": 0, "created_at": 0 })
-    df = pd.DataFrame(list(result))
-    st.dataframe(df)
-    for res in result:
-        st.session_state.userHistory.append(list(result))
+    if st.session_state.username != '':
+        st.write("## User Information")
+        st.write(st.session_state.userHistory)
+        st.write("## Illness History")
+        st.dataframe(pd.DataFrame(st.session_state.illness_history))
+        st.write("## Vaccination History")
+        st.dataframe(pd.DataFrame(st.session_state.vaccination_history))
+    else:
+        st.warning("Please log in to view user history.")
+
     
 
 if __name__ == "__main__":
