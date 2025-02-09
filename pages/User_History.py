@@ -8,7 +8,7 @@ if 'illness_history' not in st.session_state:
 if 'vaccination_history' not in st.session_state:
     st.session_state.vaccination_history = []
 if 'username' not in st.session_state:
-       st.session_state.username = ''
+    st.session_state.username = ''
 
 def main():
     st.title("User History")

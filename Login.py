@@ -14,9 +14,16 @@ if 'username' not in st.session_state:
        st.session_state.username = ''
 if 'form' not in st.session_state:
        st.session_state.form = ''
+if 'userid' not in st.session_state:
+       st.session_state.userid = ''
+
 
 def select_signin():
     st.session_state.username = ''
+    st.session_state.userid = ''
+    st.session_state.illness_history = []
+    st.session_state.vaccination_history = []
+    st.session_state["userHistory"] = {}
     st.session_state.form = 'signin_form'
 
 def select_signup():
@@ -24,6 +31,14 @@ def select_signup():
 
 def user_update(name):
     st.session_state.username = name
+
+def userid_update(userid):
+    st.session_state.userid = userid
+
+def get_userid(username):
+    result = db["users"].find({"email": username},{ "_id": 0, "user_id":1 })
+    for res in result:
+        return res['user_id']
 
 if st.session_state.username != '':
     st.write(f"You are logged in as {st.session_state.username.upper()}")
@@ -56,6 +71,7 @@ if st.session_state.form == 'signup_form' and st.session_state.username == '':
                     st.error('Passwords do not match')
                 else:
                     user_update(new_email)
+                    userid_update(db.users.count_documents({}) + 1)
                     db.users.insert_one({'user_id': db.users.count_documents({}) + 1, 'first_name': new_first_name, 'last_name': new_last_name, 'email' : new_email, 'password' : new_password})
                     st.success('You have successfully registered!')
                     # st.success(f"You are logged in as {new_email.upper()}")
@@ -73,6 +89,7 @@ elif st.session_state.username == '':
         login = login_form.form_submit_button(label='Sign In', on_click=user_update(username))
         if login:
             # st.success(f"You are logged in as {username.upper()}")
+            userid_update(get_userid(username))
             st.switch_page('pages/Chat_Bot.py')
             del user_pas
     else:

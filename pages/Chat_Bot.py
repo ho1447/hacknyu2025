@@ -22,18 +22,20 @@ if 'vaccination_history' not in st.session_state:
 if "userHistory" not in st.session_state:
     st.session_state["userHistory"] = {}
 if 'username' not in st.session_state:
-       st.session_state.username = ''
+    st.session_state.username = ''
+if 'userid' not in st.session_state:
+    st.session_state.userid = ''
 
 def fetch_user_hist():
-    result = db["patient"].find({"patient_id": 1},{ "_id": 0, "patient_id": 0, "user_id": 0, "created_at": 0 })
+    result = db["users"].find({"user_id": st.session_state.userid},{ "_id": 0, "first_name": 1, "last_name": 1, "email": 1, "contact_number":1 })
     for res in result:
         st.session_state.userHistory.update(res)
 def fetch_user_illness():
-        r1 = db["illness_history"].find({"patient_id": 1},{ "_id": 0, "patient_id": 0, "illness_id": 0, "created_at": 0 })
-        for ill in r1:
-            st.session_state.illness_history.append(ill)
+    illness = db["illness_history"].find({"patient_id": st.session_state.userid},{ "_id": 0, "patient_id": 0, "illness_id": 0, "created_at": 0 })
+    for ill in illness:
+        st.session_state.illness_history.append(ill)
 def fetch_user_vacc():
-    vacc = db["vaccination_history"].find({"patient_id": 1},{ "_id": 0, "patient_id": 0, "vaccination_id": 0, "vaccine_batch": 0, "created_at": 0 })
+    vacc = db["vaccination_history"].find({"patient_id": st.session_state.userid},{ "_id": 0, "patient_id": 0, "vaccination_id": 0, "vaccine_batch": 0, "created_at": 0 })
     for v in vacc:
         st.session_state.vaccination_history.append(v)
 
@@ -42,18 +44,19 @@ def generate_response(input_text):
     print(f"Gemini's Response: {response}")
     return response.content
 
+if 'userHistory' not in st.session_state or st.session_state.userHistory == {}:
+    fetch_user_hist()    
+if 'illness_history' not in st.session_state or st.session_state.illness_history == []:
+    fetch_user_illness()
+if 'vaccination_history' not in st.session_state or st.session_state.vaccination_history == []:
+    fetch_user_vacc()
 
 def main():
-    fetch_user_hist()
-    fetch_user_illness()
-    fetch_user_vacc()
 
     st.title("SicklySage")
 
     if st.session_state.username != '':
         with st.sidebar:
-            if st.session_state.userHistory != {}:
-                st.metric("Emergency Contact", st.session_state.userHistory["emergency_contact"])
             with st.expander("See Illnesses"):
                 for ill in st.session_state.illness_history:
                     st.write(ill["illness_name"])
@@ -72,13 +75,17 @@ def main():
 
 
         if prompt := st.chat_input(placeholder="Ask a question"):
+
+            # Prompt engineering
+            if st.session_state.illness_history != []:
+                prompt += " Illness History: " + str(st.session_state.illness_history)
+            if st.session_state.vaccination_history != []:
+                prompt +=" Vaccination History: " + str(st.session_state.vaccination_history)
             st.session_state.messages.append({"role": "user", "content": prompt})
             st.chat_message("user").write(prompt)
 
-            # Prompt engineering
-            init_prompt = "You are an assistant for diagnosing illnesses. Use six sentences maximum and keep the answer concise."
-            prompt = init_prompt + prompt + " Illness History: " + str(st.session_state.illness_history) + " Vaccination History: " + str(st.session_state.vaccination_history)
-            print(prompt)
+            init_prompt = "You are an assistant for diagnosing illnesses. Use six sentences maximum and keep the answer concise. "
+            prompt = init_prompt + prompt
 
             # Send user's message to Gemini and get the response
             gemini_response = generate_response(prompt)
