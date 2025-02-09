@@ -10,7 +10,7 @@ llm = ChatGoogleGenerativeAI(
     max_tokens=None,
     timeout=None,
     max_retries=2,
-    api_key=GEMINI_API_KEY
+    api_key=st.secrets["GEMINI_API_KEY"]
 )
 connection_string = "mongodb+srv://phh242:hacknyu2025password@hacknyu2025.1lcf2.mongodb.net/?retryWrites=true&w=majority&appName=hacknyu2025"
 client = MongoClient(connection_string)

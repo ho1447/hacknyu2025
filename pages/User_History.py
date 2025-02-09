@@ -2,7 +2,7 @@ import streamlit as st
 from pymongo import MongoClient 
 import pandas as pd
 
-client = MongoClient(connection_string)
+client = MongoClient(st.secrets["connection_string"])
 db = client["hacknyu2025"]
 collection = db["patient"]
 
